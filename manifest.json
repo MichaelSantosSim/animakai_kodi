@@ -1,0 +1,24 @@
+ {
+    "name": "Animakai Kodi",
+    "version": "1.0",
+    "description": "Animakai kodi player extension",
+    "permissions": ["declarativeContent","storage", "http://*/*"],
+    "web_accessible_resources": ["play-pause.png"],
+    "content_scripts": [
+      {
+        "matches": ["http://www.animeskai.com/*"],
+        "css": ["style.css", "pnotify/pnotify.custom.min.css"],
+        "js": ["jquery.js", "script.js", "pnotify/pnotify.custom.min.js"]
+      }
+    ],
+    "page_action": {
+      "default_popup": "popup.html",
+      "default_icon": {
+        "16": "animakai.png",
+        "32": "animakai.png",
+        "48": "animakai.png",
+        "128": "animakai.png"
+      }
+    },
+    "manifest_version": 2
+  }

@@ -1,0 +1,18 @@
+.kodi-link{
+    cursor: pointer;
+}
+
+.tt-padrao{
+	display:inline !important;
+}
+
+.play-pause{
+	height: 50px !important;
+	margin-top: 0.8%;
+	margin-left: 20px;
+	cursor: pointer;
+}
+
+.play-pause:active{
+	opacity: 0.5;
+}
