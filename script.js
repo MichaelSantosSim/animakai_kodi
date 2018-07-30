@@ -1,7 +1,14 @@
+var address;
+
 $(document).ready(function(){
  addButtons();
  addPlayAll();
  addPlayPause();
+ addCreatePlaylist();
+ chrome.storage.local.get('address', function(result) {
+	  console.log('Value currently is ' + result.address);
+	  address = result.address;
+	});
 });
 
 function addPlayPause(){
@@ -50,12 +57,12 @@ var queueRequest  = {
 	}
 
 
-function ajaxRequest(request, epName){
+function ajaxRequest(request, epName, async){
 	jQuery.ajax({
 	    type: "POST",
-	    url: "http://192.168.1.41:80/jsonrpc",
+	    url: "http://" + address + "/jsonrpc",
 	    data: JSON.stringify(request),
-	    async: false,
+	    async: async,
 	    headers: { 
 	        'Accept': 'application/json',
 	        'Content-Type': 'application/json' 
@@ -64,7 +71,7 @@ function ajaxRequest(request, epName){
 
 	    	var requestType = request == playRequest ? "sent" : "queued";
 
-	    	showNotification("Sucess", epName + " was successfuly " + requestType + "!", "success")
+	    	showNotification("Sucess", epName + " was successfuly " + requestType + " to " + address +"!", "success")
 	    	console.log("Request: " + JSON.stringify(request));
 	        console.log("Response: " + JSON.stringify(data));
 	        console.log("---------------------------------------------------------");
@@ -79,7 +86,7 @@ function ajaxRequest(request, epName){
 function sendPauseRequest(request){
 	jQuery.ajax({
 	    type: "POST",
-	    url: "http://192.168.1.41:80/jsonrpc",
+	    url: "http://" + address + "/jsonrpc",
 	    data: JSON.stringify(request),
 	    async: false,
 	    headers: { 
@@ -121,7 +128,7 @@ function extractVideoUrl(pageData){
 	}
 }
 
-function getPageData(page, request, epName){
+function getPageData(page, request, epName, async){
 	$.ajax({
 	   type: 'GET',
 	   async: false,
@@ -131,7 +138,8 @@ function getPageData(page, request, epName){
 	   success: function(pageData){
 		   	var videoLink = extractVideoUrl(pageData);
 		   	request.params.item.file = videoLink;
-		   	ajaxRequest(request, epName);
+		   	console.log('#EXTINF:0,' + epName + '\n' + videoLink);
+		   	ajaxRequest(request, epName, async);
 	   },
 	   error: function(xhr, textStatus, errorThrown){
        	alert('request failed ' + textStatus + " - " + errorThrown);
@@ -163,11 +171,11 @@ function addButtons(){
   		}
 
 		playBtn.click(function(){
-		  	getPageData(link, playRequest, epName);
+		  	getPageData(link, playRequest, epName, true);
 		});
 
 		queueBtn.click(function(){
-		  	getPageData(link, queueRequest, epName);
+		  	getPageData(link, queueRequest, epName, true);
 		});
 
 		$(this).append(playBtn);
@@ -175,6 +183,61 @@ function addButtons(){
   });
 }
 
+
+function addCreatePlaylist(){
+	var isAllEpisodesPage = $(".col-episodios").length > 0;
+
+	if(isAllEpisodesPage){
+		var nameHeader = $(".top-padrao");
+		var listDownload = $("<h2><a href='#'>[Create m3u]</a></h2>")
+						.addClass("tt-padrao");
+
+		listDownload.click(function(){
+			var m3uList = "#EXTM3U\n";
+  		
+	  		$(".item-pg-anime").each(function(){
+
+	  				var link = $(this).find("a.thumb").attr("href");
+
+	  				var epName = $(this).find(">:first-child").find(">:first-child").html();
+
+	  				var thumbNail = $(this).find("a.thumb").find("img").attr("src");
+
+			  		if(link===undefined){
+			  			link = $(this).parent().find("a.btn-online").attr("href");
+			  		}
+
+			  		if(!link.includes(window.location.origin)){
+			  			link = window.location.origin + link;
+			  		}
+
+
+			  		$.ajax({
+					   type: 'GET',
+					   async: false,
+					   crossDomain: true,
+					   dataType: 'text',
+					   url: link,
+					   success: function(pageData){
+						   	var videoLink = extractVideoUrl(pageData);
+						   	link = videoLink;
+					   },
+					   error: function(xhr, textStatus, errorThrown){
+				       	alert('request failed ' + textStatus + " - " + errorThrown);
+				    	}
+					});
+
+			  		m3uList = m3uList.concat("#EXTINF:0 tvg-logo=\"" +thumbNail + "\", " + epName + "\n");
+			  		m3uList = m3uList.concat(link + "\n");
+
+	  			});
+	  		console.clear();
+	  		console.log(m3uList);
+			});
+
+  		nameHeader.append(listDownload);
+	}
+}
 
 function addPlayAll(){
 	var isAllEpisodesPage = $(".col-episodios").length > 0;
@@ -203,15 +266,15 @@ function addPlayAll(){
 		  		}
 
 		  		if(isFirst){
-		  			getPageData(link, playRequest, epName);
+		  			getPageData(link, playRequest, epName, false);
 		  			isFirst = false;
 		  		}else{
-		  			getPageData(link, queueRequest, epName);
+		  			getPageData(link, queueRequest, epName, false);
 		  		}
 
 		  		var name = $(this).find("a.thumb").attr("title");
 
-		  		console.log("Requesting: " + name);
+//		  		console.log("Requesting: " + name);
 
   			});
   		});

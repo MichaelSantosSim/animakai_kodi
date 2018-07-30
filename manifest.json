@@ -8,11 +8,12 @@
       {
         "matches": ["http://www.animeskai.com/*"],
         "css": ["style.css", "pnotify/pnotify.custom.min.css"],
-        "js": ["jquery.js", "script.js", "pnotify/pnotify.custom.min.js"]
+        "js": ["jquery.js", "script.js", "popup.js", "pnotify/pnotify.custom.min.js"]
       }
     ],
-    "page_action": {
+    "browser_action": {
       "default_popup": "popup.html",
+      "default_title" : "animeskodi",
       "default_icon": {
         "16": "animakai.png",
         "32": "animakai.png",
